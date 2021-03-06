@@ -1,0 +1,154 @@
+*dawn* *dawn.vim* 
+
+License: MIT
+URL: https://github.com/LunarWatcher/Dawn
+
+*Changelog: Todo
+
+================================================================================
+Table of contents~
+
+    1. Introduction ............................. |dawn-introduction|
+    2. Usage .................................... |dawn-usage|
+    3. Options .................................. |dawn-options|
+    4. Functions ................................ |dawn-functions|
+    5. The template object ...................... |dawn-template-object|
+
+================================================================================
+1. Introduction                                                *dawn-introduction*
+
+Dawn is a flexible project generator.
+
+What?~
+
+What this means is, you plug in a few options and preferences, invoke a command
+in a directory, and Dawn generates the files and folders you requested.
+
+You know how IDEs have project setup? Dawn is that, but flexible, customizable,
+and can by extension handle any type of project. To be completely clear though,
+Dawn is _only_ a generator - not a project manager, IDE-emulator, session
+manager, or a plugin that stores the location of your projects.
+
+But why?~
+
+Because I had some spare time, set up 7 repos for various ideas by brain spewed
+out, and realized I didn't wanna spend time setting up the file structure in
+every single one manually.
+
+How?~
+
+Hop on down to |dawn-usage|.
+
+Doesn't this already exist?~
+
+Not as far as I know. There's project management plugins of varying quality and
+documentation levels, but none for generating. But hey, maybe it's just me who
+keeps jumping on new projects constantly :p
+
+================================================================================
+2. Usage                                                              *dawn-usage*
+
+	*Todo	write this entire section
+
+
+
+
+================================================================================
+3. Options                                                          *dawn-options*
+
+What's a customizable plugin without options? This section lists the options
+that exist. Note that a few have 
+
+Table of Contents:~
+    * |g:DawnDefaultTemplates|
+    * |g:DawnProjectTemplates|
+
+--------------------------------------------------------------------------------
+                                                          *g:DawnDefaultTemplates*
+
+Default: ['vim']
+
+Dawn does ship with a couple pre-defined templates for projects; this is the
+variable you use if you want to disable these completely.
+
+Essentially, you remove names from the array, and they won't load.
+
+Also, note that the defaults respect your choices. If you name a template `vim`
+(case-sensitive, however), the standard `vim` template won't load.
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+
+
+================================================================================
+4. Functions                                                      *dawn-functions*
+
+If you read or skimmed through the options, you've probably noticed several
+functions being mentioned.
+
+These exist to utilize autoload functionality, as well as provide a somewhat
+more "sensible" interface to some of the variables.
+
+Table of Contents:~
+
+
+================================================================================
+5. The template object                                      *dawn-template-object*
+
+Note that this is heavily connected to |g:DawnProjectTemplates|. To be specific
+(and as mentioned in that bit of the documentation), the variable contains
+several template objects. To keep the help document structured, this is the bit
+of the document that covers what these are, and their syntax.
+
+--------------------------------------------------------------------------------
+5.1.                                                 *dawn-template-object-syntax*
+
+Well, it's an object. (or |dict| as Vim likes to call it). I won't be covering
+the syntax of an object here, but you're probably familiar with it already.
+
+The structure of Dawn's template objects, excluding the outer list, is: >
+    {
+        "folders": ["a", "b", "b/c", "you get the idea"],
+        "files": {"a/example.txt": {'content': 'File content, or', 'source':
+            'absolute path or a relative one (Dawn will search through
+                                              |g:DawnSearchPaths|)'}},
+        "commands": ["Optional, but commands to run after initializing the basic
+            folder and file structure. Can also be used without folders or files
+            if you just wanna interact with something like Hugo"]
+    }
+<
+
+Keys:~
+    * folders: as you might expect, it contains  folders to generate. You don't
+               explicitly have to declare the roots here (Dawn is smart enough
+               to figure out the maths and mkdir everything) - depends purely on
+               what you prefer.
+    * files  : A set of files to  generate. Note that this is a map, unlike
+               folders, which is a list. The map accepts one of two keys:
+               content or source. Content is self-explanatory: you declare, in
+               vim, what you want in the file. content can also be a function
+               Source is different, and defines a file to copy over to the
+               project. If the path isn't absolute, Dawn will search relative to
+               |g:DawnSearchPaths|
+    * commands: A vim function, or a list of vim commands to execute after
+                folders and files are generated
+
+                                            *dawn-template-object-substitutions*
+
+Additionally, certain bits supports substitutions. This is largely because it's
+not always possible to generate a static, final project structure with clear
+file names that have no reason to change. Vim projects is one example of this;
+doc/help.txt is way to generic. Dawn therefore offers a set of substitutions.
+These are run on file names, commands (|g:DawnSubstituteCommands|), folder
+names, and file content (|g:DawnSubstituteFileContent|).
+
+The currently supported substitutions are:
+    - %dn                   The name of the current directory. If the generate
+                            command is invoked in
+                            /home/you/projects/SuperSecret, %dn is substituted
+                            with SuperSecret.
+
+    - %ldn                  %dn but forced lower-case
+
+vim:ft=help:tw=80
