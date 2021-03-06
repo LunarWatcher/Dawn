@@ -36,8 +36,7 @@ if index(g:DawnDefaultTemplates, 'vim') != -1
                     \ ".gitignore": {"content": "doc/tags"},
                     \ "LICENSE": {},
                     \ "README.md": {},
-                    \ "CHANGELOG.md": {},
-                    \ "Bullshit": {"source": "README.md"}
+                    \ "CHANGELOG.md": {}
                 \ }
             \ }
 endif
