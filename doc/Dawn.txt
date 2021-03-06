@@ -3,7 +3,7 @@
 License: MIT
 URL: https://github.com/LunarWatcher/Dawn
 
-*Changelog: Todo
+Changelog: Todo
 
 ================================================================================
 Table of contents~
@@ -120,19 +120,24 @@ The structure of Dawn's template objects, excluding the outer list, is: >
 <
 
 Keys:~
-    * folders: as you might expect, it contains  folders to generate. You don't
-               explicitly have to declare the roots here (Dawn is smart enough
-               to figure out the maths and mkdir everything) - depends purely on
-               what you prefer.
-    * files  : A set of files to  generate. Note that this is a map, unlike
-               folders, which is a list. The map accepts one of two keys:
-               content or source. Content is self-explanatory: you declare, in
-               vim, what you want in the file. content can also be a function
-               Source is different, and defines a file to copy over to the
-               project. If the path isn't absolute, Dawn will search relative to
-               |g:DawnSearchPaths|
+    * folders:  as you might expect, it contains  folders to generate. You don't
+                explicitly have to declare the roots here (Dawn is smart enough
+                to figure out the maths and mkdir everything) - depends purely on
+                what you prefer.
+
+    * files:    A set of files to  generate. Note that this is a map, unlike
+                folders, which is a list. The map accepts one of two keys:
+                content or source. Content is self-explanatory: you declare, in
+                vim, what you want in the file. content can also be a function
+                Source is different, and defines a file to copy over to the
+                project. If the path isn't absolute, Dawn will search relative to
+                |g:DawnSearchPaths|
+
     * commands: A vim function, or a list of vim commands to execute after
-                folders and files are generated
+                folders and files are generated. Note that the commands are
+                handled through |exec| - if you want to use system commands, the
+                command has to be in the format `:!yoursystemcommand` (i.e.
+                `:!ls`).
 
                                             *dawn-template-object-substitutions*
 

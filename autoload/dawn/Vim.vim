@@ -1,6 +1,6 @@
 " That file name though. Y i k e s
 
-fun! dawn#vim#GenerateHelpDoc()
+fun! dawn#Vim#GenerateHelpDoc()
     return "*%ldn* *%ldn.vim* *%ldn.txt*\n"
                 \ . "\nLicense: Your license here\nURL: Your URL here\n"
                 \ . "\nChangelog:\n\n" . repeat('=', 80) . "\n"
