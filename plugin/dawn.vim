@@ -12,5 +12,7 @@ fun! DawnPromptProject(...)
 
 endfun
 
-command! -nargs=? GenerateTemplate call DawnPromptProject(<f-args>)
+command! -nargs=? DawnGenerate call DawnPromptProject(<f-args>)
+command! -nargs=0 DawnList call dawn#ListTemplates()
 
+nnoremap <C-g><C-l> :DawnList<CR>

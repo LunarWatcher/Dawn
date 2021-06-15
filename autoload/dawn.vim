@@ -14,7 +14,7 @@ fun! s:define(name, default)
     endif
 endfun
 
-call s:define('g:DawnDefaultTemplates', ["vim"])
+call s:define('g:DawnDefaultTemplates', ["vim", "cpp"])
 call s:define('g:DawnProjectTemplates', {})
 call s:define('g:DawnSearchPaths', [])
 call s:define('g:DawnSkipExisting', 1)
@@ -40,10 +40,25 @@ if index(g:DawnDefaultTemplates, 'vim') != -1
                 \ }
             \ }
 endif
+if index(g:DawnDefaultTemplates, 'cpp') != -1
+            \ && !has_key(g:DawnProjectTemplates, 'cpp')
+    let g:DawnProjectTemplates["cpp"] = {
+        \ "folders": [ "src", "build", "src/%ldn", "docs" ],
+        \ "files": {
+            \ "CMakeLists.txt": { 'source': 'CMakeLists.root.txt' },
+            \ "src/CMakeLists.txt": { 'source': 'CMakeLists.src.txt' },
+            \ "src/%ldn/Main.cpp": { 'content': "#include<iostream>\n\nint main() {\n    std::cout << \"Hello, World!\" << std::endl;\n}" },
+            \ "LICENSE": {},
+            \ "README.md": { 'content': "# %dn\n" },
+            \ ".gitignore": { 'source': 'cpp.gitignore' }
+        \ },
+        \ "commands": [ "!cd build && cmake .. -DCMAKE_BUILD_TYPE=Debug && make && ./src/%dn" ]
+    \ }
+endif
 
 fun! dawn#InternalSubstitute(string, type)
     if type(a:string) == v:t_list
-        let result = []
+        let result = [] 
         for line in a:string
             call add(result, dawn#InternalSubstitute(line, a:type))
         endfor
@@ -149,9 +164,16 @@ fun! dawn#GenerateProject(templateName)
 
     if has_key(template, 'commands')
         for command in template["commands"]
-            exec command
+            exec dawn#InternalSubstitute(command, 3)
         endfor
     endif
+endfun
+
+fun! dawn#ListTemplates()
+    echo "Valid template names: "
+    for template in keys(g:DawnProjectTemplates)
+        echo '* ' . template
+    endfor
 endfun
 
 let &cpoptions = s:save_cpo

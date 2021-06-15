@@ -25,15 +25,14 @@ What this means is, you plug in a few options and preferences, invoke a command
 in a directory, and Dawn generates the files and folders you requested.
 
 You know how IDEs have project setup? Dawn is that, but flexible, customizable,
-and can by extension handle any type of project. To be completely clear though,
+and can by extension handle any type of project in any style you prefer, or that
+your organization/group/whatever requires/prefer. To be completely clear though,
 Dawn is _only_ a generator - not a project manager, IDE-emulator, session
 manager, or a plugin that stores the location of your projects.
 
 But why?~
 
-Because I had some spare time, set up 7 repos for various ideas by brain spewed
-out, and realized I didn't wanna spend time setting up the file structure in
-every single one manually.
+Why not?
 
 How?~
 
@@ -48,10 +47,10 @@ keeps jumping on new projects constantly :p
 ================================================================================
 2. Usage                                                              *dawn-usage*
 
-	*Todo	write this entire section
+See |dawn-template-object| for adding additional templates.
 
-
-
+Use *:DawnGenerate* <template name> to generate a template. For a list of
+templates in use, use *:DawnList* (<C-g><C-l>).
 
 ================================================================================
 3. Options                                                          *dawn-options*
@@ -62,11 +61,13 @@ that exist. Note that a few have
 Table of Contents:~
     * |g:DawnDefaultTemplates|
     * |g:DawnProjectTemplates|
+    * |g:DawnSearchPaths|
+    * |g:DawnSkipExisting|
 
 --------------------------------------------------------------------------------
                                                           *g:DawnDefaultTemplates*
 
-Default: ['vim']
+Default: ['vim', 'cpp']
 
 Dawn does ship with a couple pre-defined templates for projects; this is the
 variable you use if you want to disable these completely.
@@ -77,8 +78,41 @@ Also, note that the defaults respect your choices. If you name a template `vim`
 (case-sensitive, however), the standard `vim` template won't load.
 
 --------------------------------------------------------------------------------
+                                                          *g:DawnProjectTemplates*
+
+Default: depends on |g:DawnDefaultTemplates|
+Refer to the source code for the template implementations. Note that certain
+default templates depend on template files present in the /templates directory
+of the plugin, by default.
+
+By overriding |g:DawnSearchPaths|, you can override files without overriding
+templates. By adding a custom path to the variable before the default path, any
+custom files you add in your directory will override the plugin files.
+
+To add additional templates, you add a |dawn-template-object|. Names may be
+equivalent to built-in templates without removing the default templates - Dawn
+will not override already-present templates when initialization takes place.
 
 --------------------------------------------------------------------------------
+                                                               *g:DawnSearchPaths*
+
+Default: [<path to plugin>/templates] if |g:DawnDefaultTemplates| has elements,
+         [] otherwise
+
+Defines where to search for files defined by `source` declarations in
+|dawn-template-object|, when the path isn't detected to be absolute.
+
+Note that for paths relative to the home directory, it's adviced that you use
+|$HOME| instead of "~/path", due to internal detection systems.
+
+
+--------------------------------------------------------------------------------
+                                                              *g:DawnSkipExisting*
+
+Default: 1
+
+Whether or not to skip existing folders and files. Primarily useful for projects
+with a few files already produced.
 
 
 ================================================================================
@@ -90,7 +124,9 @@ functions being mentioned.
 These exist to utilize autoload functionality, as well as provide a somewhat
 more "sensible" interface to some of the variables.
 
-Table of Contents:~
+Table of Contents:
+
+    TODO at a later time~
 
 
 ================================================================================
@@ -136,8 +172,8 @@ Keys:~
     * commands: A vim function, or a list of vim commands to execute after
                 folders and files are generated. Note that the commands are
                 handled through |exec| - if you want to use system commands, the
-                command has to be in the format `:!yoursystemcommand` (i.e.
-                `:!ls`).
+                command has to be in the format `!yoursystemcommand` (i.e.
+                `!ls`).
 
                                             *dawn-template-object-substitutions*
 
