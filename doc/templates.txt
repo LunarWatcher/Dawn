@@ -1,0 +1,44 @@
+*dawn-templates.txt* 
+
+
+================================================================================
+Table of contents~
+
+    1. Introduction ............................. |dawn-template-intro|
+    2. Vim ...................................... |dawn-vim-template|
+    3. C++ ...................................... |dawn-cpp-template|
+
+================================================================================
+1. Introduction                                              *dawn-template-intro*
+
+This help document contains a short summary of the various supported
+templates. The main document can be found at |dawn|
+
+================================================================================
+2. Vim                                                         *dawn-vim-template*
+
+The Vim template is a fairly standard template that generates some placeholder
+content for the autoload/, plugin/, and doc/ directories, as well as some
+standard git files.
+
+This template doesn't support any special arguments, and doesn't run any
+commands.
+
+================================================================================
+3. C++                                                         *dawn-cpp-template*
+
+The C++ template generates a semi-opinionated set of default files. Using
+CMake, and C++20 as the language standard (which obviously can be changed by the
+template user), it's a fairly normal template.
+
+The template contains a "Hello, World!" program that compiles during template
+generation. This is to validate the sanity of the build framework.
+
+The template additionally comes with code for Conan, that's commented out by
+default. Uncommenting this lets you configure conan very quickly, with the
+help of cmake-conan: https://github.com/conan-io/cmake-conan
+
+This template doesn't support any special arguments.
+
+
+vim:ft=help
