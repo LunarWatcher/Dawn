@@ -7,9 +7,9 @@ fun! dawn#Templates#InitTemplates()
                         \ "doc/", "autoload", "plugin"
                         \ ],
                     \ "files": {
-                        \ "doc/%dn.txt": {'content': function('dawn#Vim#GenerateHelpDoc')},
-                        \ "plugin/%dn.vim": {},
-                        \ "autoload/%dn.vim": {},
+                        \ "doc/%ldn.txt": {'content': function('dawn#Vim#GenerateHelpDoc')},
+                        \ "plugin/%ldn.vim": {},
+                        \ "autoload/%ldn.vim": {},
                         \ ".gitignore": {"content": "doc/tags"},
                         \ "LICENSE": {},
                         \ "README.md": {},
