@@ -32,5 +32,18 @@ fun! dawn#Templates#InitTemplates()
             \ "commands": [ "!cd build && cmake .. -DCMAKE_BUILD_TYPE=Debug && make && ./src/%ldn" ]
         \ }
     endif
+    if index(g:DawnDefaultTemplates, 'go') != -1
+                \ && !has_key(g:DawnProjectTemplates, 'go')
+        let g:DawnProjectTemplates["go"] = {
+            \ "folders": [ "cmd", "pkg" ],
+            \ "files": {
+                \ "main.go": { 'content': "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println (\"Hello, World!\")\n}" },
+                \ "LICENSE": {},
+                \ "README.md": { 'content': "# %dn\n" },
+                \ ".gitignore": { 'source': 'go.gitignore' }
+            \ },
+            \ "commands": [ 'silent! !git init && git add . && git commit -m "Initial commit"','redraw!','edit +/Hello main.go' ]
+        \ }
+    endif
 
 endfun
