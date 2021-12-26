@@ -14,20 +14,20 @@ fun! s:define(name, default)
     endif
 endfun
 
-call s:define('g:DawnDefaultTemplates', ["vim", "cpp"])
+call s:define('g:DawnDefaultTemplates', ["vim", "cpp", "go"])
 call s:define('g:DawnProjectTemplates', {})
 call s:define('g:DawnSearchPaths', [])
 call s:define('g:DawnSkipExisting', 1)
 
-if len(g:DawnDefaultTemplates) != 0 && index(g:DawnSearchPaths, expand('<sfile>:p:h') . '/templates') < 0
-    call add(g:DawnSearchPaths, expand("<sfile>:p:h:h") . "/templates")
+if len(g:DawnDefaultTemplates) != 0 && index(g:DawnSearchPaths, expand('<sfile>:p:h') .. '/templates') < 0
+    call add(g:DawnSearchPaths, expand("<sfile>:p:h:h") .. "/templates")
 endif
 
 call dawn#Templates#InitTemplates()
 
 fun! dawn#InternalSubstitute(string, type)
     if type(a:string) == v:t_list
-        let result = [] 
+        let result = []
         for line in a:string
             call add(result, dawn#InternalSubstitute(line, a:type))
         endfor
@@ -65,16 +65,16 @@ endfun
 fun! dawn#DawnCopy(source, target, abspath)
     if !a:abspath
         for directory in g:DawnSearchPaths
-            if filereadable(directory . "/" . a:source)
-                echo "Copying " . a:source . " to " . a:target
-                let content = dawn#InternalSubstitute(readfile(directory . "/" . a:source), 1)
+            if filereadable(directory .. "/" .. a:source)
+                echom "Copying " .. a:source .. " to " .. a:target
+                let content = dawn#InternalSubstitute(readfile(directory .. "/" .. a:source), 1)
                 call writefile(content, a:target)
                 return
             endif
         endfor
-        echoerr "Failed to find " . a:source . " in the search path."
+        echoerr "Failed to find " .. a:source .. " in the search path."
     else
-        echo "Copying " . a:source . " to " . a:target
+        echom "Copying " .. a:source .. " to " .. a:target
         let content = dawn#InternalSubstitute(readfile(a:source), 1)
         call writefile(content, a:target)
     endif
@@ -82,34 +82,34 @@ endfun
 
 fun! dawn#GenerateProject(templateName)
     if !has_key(g:DawnProjectTemplates, a:templateName)
-        echoerr "There's no template by the name of " . a:templateName
+        echoerr "There's no template by the name of " .. a:templateName
         return
     endif
     let template = g:DawnProjectTemplates[a:templateName]
 
     if !has_key(template, 'folders') && !has_key(template, 'files') && !has_key(template, 'commands') < 0
-        echoerr "The template " . a:templateName . " is missing folders, files, and commands; at least one of them have to be present for the object to be valid"
+        echoerr "The template " .. a:templateName .. " is missing folders, files, and commands; at least one of them have to be present for the object to be valid"
         return
     endif
 
     " Iterate folders
     if has_key(template, 'folders')
-        echo "Generating folders..."
+        echom "Generating folders..."
         for folder in template["folders"]
             if g:DawnSkipExisting && isdirectory(folder)
                 continue
             endif
             silent! call mkdir(dawn#InternalSubstitute(folder, 4), "p")
         endfor
-        echo "Done."
+        echom "Done."
     endif
 
     " After folders, initialize files
     if has_key(template, 'files')
-        echo "Generating files..."
+        echom "Generating files..."
         for [file, data] in items(template["files"])
             let substFile = dawn#InternalSubstitute(file, 2)
-            echo "Generating " . substFile
+            echom "Generating " .. substFile
             if g:DawnSkipExisting && filereadable(substFile)
                 continue
             endif
@@ -128,7 +128,7 @@ fun! dawn#GenerateProject(templateName)
                 call writefile([], substFile)
             endif
         endfor
-        echo "File generation done."
+        echom "File generation done."
     endif
 
     if has_key(template, 'commands')
@@ -139,9 +139,9 @@ fun! dawn#GenerateProject(templateName)
 endfun
 
 fun! dawn#ListTemplates()
-    echo "Valid template names: "
+    echom "Valid template names: "
     for template in keys(g:DawnProjectTemplates)
-        echo '* ' . template
+        echom '* ' .. template
     endfor
 endfun
 
