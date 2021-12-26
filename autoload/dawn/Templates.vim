@@ -42,7 +42,7 @@ fun! dawn#Templates#InitTemplates()
                 \ "README.md": { 'content': "# %dn\n" },
                 \ ".gitignore": { 'source': 'go.gitignore' }
             \ },
-            \ "commands": [ 'silent! !git init && git add . && git commit -m "Initial commit"','redraw!','edit +/Hello main.go' ]
+            \ "commands": [ 'silent! !git init && git add . && git commit -m "Initial commit"','edit +/Hello main.go' ]
         \ }
     endif
 
