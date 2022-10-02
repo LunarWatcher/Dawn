@@ -29,7 +29,7 @@ fun! dawn#Templates#InitTemplates()
                 \ "README.md": { 'content': "# %dn\n" },
                 \ ".gitignore": { 'source': 'cpp.gitignore' }
             \ },
-            \ "commands": [ "!cd build && cmake .. -DCMAKE_BUILD_TYPE=Debug && make && ./src/%ldn" ]
+            \ "commands": [ "!cd build && cmake .. -DCMAKE_BUILD_TYPE=Debug && make && ./bin/%ldn" ]
         \ }
     endif
     if index(g:DawnDefaultTemplates, 'go') != -1
