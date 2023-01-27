@@ -185,11 +185,11 @@ These are run on file names, commands (|g:DawnSubstituteCommands|), folder
 names, and file content (|g:DawnSubstituteFileContent|).
 
 The currently supported substitutions are:
-    - %dn                   The name of the current directory. If the generate
+    - %{dn}                 The name of the current directory. If the generate
                             command is invoked in
                             /home/you/projects/SuperSecret, %dn is substituted
                             with SuperSecret.
 
-    - %ldn                  %dn but forced lower-case
+    - %{ldn}                %dn but forced lower-case
 
 vim:ft=help:tw=80

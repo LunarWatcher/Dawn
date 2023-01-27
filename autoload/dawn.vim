@@ -44,8 +44,9 @@ fun! dawn#InternalSubstitute(string, type)
     " TODO: use the type to determine whether or not to substitute
     let cwd = fnamemodify(getcwd(), ':t')
 
-    let result = substitute(result, "%dn", cwd, "gi")
-    let result = substitute(result, "%ldn", tolower(cwd), "gi")
+    let result = substitute(result, "%{dn}", cwd, "gi")
+    let result = substitute(result, "%{ldn}", tolower(cwd), "gi")
+    let result = substitute(result, '\v^##\%.*' .. "[\r\n]+", "", "gi")
     " More substitutions go above this comment
 
     return result
