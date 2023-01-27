@@ -46,7 +46,6 @@ fun! dawn#InternalSubstitute(string, type)
 
     let result = substitute(result, "%{dn}", cwd, "gi")
     let result = substitute(result, "%{ldn}", tolower(cwd), "gi")
-    let result = substitute(result, '\v^##\%.*' .. "[\r\n]+", "", "gi")
     " More substitutions go above this comment
 
     return result
