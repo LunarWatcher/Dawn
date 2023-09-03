@@ -140,9 +140,13 @@ endfun
 
 fun! dawn#ListTemplates()
     echom "Valid template names: "
-    for template in keys(g:DawnProjectTemplates)
+    for template in dawn#ListTemplatesAsList()
         echom '* ' .. template
     endfor
+endfun
+
+fun! dawn#ListTemplatesAsList()
+    return keys(g:DawnProjectTemplates)
 endfun
 
 let &cpoptions = s:save_cpo
