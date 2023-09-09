@@ -1,4 +1,5 @@
-*dawn* *dawn.vim* 
+*dawn*    Project template generator
+*dawn.vim* 
 
 License: MIT
 URL: https://github.com/LunarWatcher/Dawn

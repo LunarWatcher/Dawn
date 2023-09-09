@@ -1,4 +1,4 @@
-*dawn-templates.txt* 
+*dawn-templates.txt*      List of the supported |dawn| templates
 
 
 ================================================================================
