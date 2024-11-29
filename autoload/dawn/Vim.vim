@@ -1,7 +1,5 @@
-" That file name though. Y i k e s
-
 fun! dawn#Vim#GenerateHelpDoc()
-    return "*%{ldn}*        Description of your awesome plugin goes here"
+    return "*%{ldn}* Short description for |local-additions|"
                 \ .. "\n*%{ldn}.vim* *%{ldn}.txt*\n"
                 \ .. "\nLicense: Your license here\nURL: Your URL here\n"
                 \ .. "\nChangelog:\n\n" . repeat('=', 80) . "\n"
