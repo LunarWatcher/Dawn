@@ -1,0 +1,8 @@
+#add_library(%{ldn}src STATIC 
+    # Non-executable files go here
+#)
+add_executable(%{ldn} %{ldn}/Main.cpp)
+
+target_include_directories(%{ldn} PUBLIC ./)
+
+# vim:ft=cmake

@@ -1,9 +1,10 @@
 *dawn* *dawn.vim* 
 
-License: MIT
+License: 
+    Plugin source code: MIT
+    Templates: Unlicense
+    See https://github.com/LunarWatcher/Dawn/blob/master/LICENSE
 URL: https://github.com/LunarWatcher/Dawn
-
-Changelog: Todo
 
 ================================================================================
 Table of contents~

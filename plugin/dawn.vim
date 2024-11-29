@@ -4,12 +4,7 @@ endif
 let g:DawnLoaded = 1
 
 fun! DawnPromptProject(...)
-    if a:0 == 0
-        " TODO: prompt
-    else
-        call dawn#GenerateProject(a:1)
-    endif
-
+    call dawn#GenerateProject(a:1)
 endfun
 
 fun! s:SortByStridx(a, b, search)
@@ -40,7 +35,7 @@ fun! s:CompleteTemplates(ArgLead, _CmdLine, _CursorPos)
     return output
 endfun
 
-command! -nargs=? -complete=customlist,s:CompleteTemplates DawnGenerate call DawnPromptProject(<f-args>)
+command! -nargs=+ -complete=customlist,s:CompleteTemplates DawnGenerate call DawnPromptProject(<f-args>)
 command! -nargs=0 DawnList call dawn#ListTemplates()
 
 nnoremap <C-g><C-l> :DawnList<CR>
