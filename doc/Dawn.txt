@@ -1,4 +1,5 @@
-*dawn* *dawn.vim* 
+*dawn*    Project template generator
+*dawn.vim* 
 
 License: 
     Plugin source code: MIT
