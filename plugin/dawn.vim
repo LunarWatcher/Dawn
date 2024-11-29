@@ -21,18 +21,24 @@ fun! s:SortByStridx(a, b, search)
 
 endfun
 
-fun! s:CompleteTemplates(ArgLead, _CmdLine, _CursorPos)
-    let templates = dawn#ListTemplatesAsList()
-    if (a:ArgLead == "")
-        return templates
-    endif
-    let output = []
-    for template in templates
-        if (template->stridx(a:ArgLead->tolower()) != -1)
-            call add(output, template)
+fun! s:CompleteTemplates(ArgLead, CmdLine, _CursorPos)
+    if a:CmdLine->trim()->stridx(" ") == -1
+        " Option 1: no space means first argument
+        let templates = dawn#ListTemplatesAsList()
+        if (a:ArgLead == "")
+            return templates
         endif
-    endfor
-    return output
+        let output = []
+        for template in templates
+            if (template->stridx(a:ArgLead->tolower()) != -1)
+                call add(output, template)
+            endif
+        endfor
+        return output
+    else
+        " Nth argument, currently not in use
+        return []
+    endif
 endfun
 
 command! -nargs=+ -complete=customlist,s:CompleteTemplates DawnGenerate call DawnPromptProject(<f-args>)
