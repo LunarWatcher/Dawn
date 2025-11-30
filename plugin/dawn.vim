@@ -1,15 +1,14 @@
-if exists('g:DawnLoaded')
-    finish
-endif
-let g:DawnLoaded = 1
+vim9script
 
-fun! DawnPromptProject(...)
-    call dawn#GenerateProject(a:1)
-endfun
+import autoload 'dawn.vim' as dawn
 
-fun! s:SortByStridx(a, b, search)
-    let aidx = a:a->stridx(a:search)
-    let bidx = a:b->stridx(a:search)
+def DawnPromptProject(templateName: string)
+    call dawn.GenerateProject(templateName)
+enddef
+
+def SortByStridx(a: string, b: string, search: string)
+    var aidx = a->stridx(search)
+    var bidx = b->stridx(search)
 
     if (aidx == bidx)
         return 0
@@ -19,29 +18,29 @@ fun! s:SortByStridx(a, b, search)
         return -1
     endif
 
-endfun
+enddef
 
-fun! s:CompleteTemplates(ArgLead, CmdLine, _CursorPos)
-    if a:CmdLine->trim()->stridx(" ") == -1
-        " Option 1: no space means first argument
-        let templates = dawn#ListTemplatesAsList()
-        if (a:ArgLead == "")
+def CompleteTemplates(ArgLead: any, CmdLine: any, _CursorPos: any)
+    if CmdLine->trim()->stridx(" ") == -1
+        # Option 1: no space means first argument
+        var templates = dawn.ListTemplatesAsList()
+        if (ArgLead == "")
             return templates
         endif
-        let output = []
+        var output = []
         for template in templates
-            if (template->stridx(a:ArgLead->tolower()) != -1)
-                call add(output, template)
+            if (template->stridx(ArgLead->tolower()) != -1)
+                add(output, template)
             endif
         endfor
         return output
     else
-        " Nth argument, currently not in use
+        # Nth argument, currently not in use
         return []
     endif
-endfun
+enddef
 
-command! -nargs=+ -complete=customlist,s:CompleteTemplates DawnGenerate call DawnPromptProject(<f-args>)
-command! -nargs=0 DawnList call dawn#ListTemplates()
+command! -nargs=1 -complete=customlist,CompleteTemplates DawnGenerate DawnPromptProject(<f-args>)
+command! -nargs=0 DawnList call dawn.ListTemplates()
 
 nnoremap <C-g><C-l> :DawnList<CR>

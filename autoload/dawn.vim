@@ -1,114 +1,94 @@
-" Dawn.vim
-" License: MIT
-" Maintainer: https://github.com/LunarWatcher
-scriptencoding utf-8
+vim9script
 
-let g:DawnVersion = 1
+import autoload "dawn/Variables.vim"
+Variables.Load()
 
-let s:save_cpo = &cpoptions
-set cpoptions&vim
-
-fun! s:define(name, default)
-    if !exists(a:name)
-        let {a:name} = a:default
-    endif
-endfun
-
-call s:define('g:DawnDefaultTemplates', ["vim", "cpp", "go"])
-call s:define('g:DawnProjectTemplates', {})
-call s:define('g:DawnSearchPaths', [])
-call s:define('g:DawnSkipExisting', 1)
+import autoload "dawn/Templates.vim" as m_templates
+m_templates.InitTemplates()
 
 if len(g:DawnDefaultTemplates) != 0 && index(g:DawnSearchPaths, expand('<sfile>:p:h') .. '/templates') < 0
-    call add(g:DawnSearchPaths, expand("<sfile>:p:h:h") .. "/templates")
+    add(g:DawnSearchPaths, expand("<sfile>:p:h:h") .. "/templates")
 endif
 
-call dawn#Templates#InitTemplates()
-
-fun! dawn#InternalSubstitute(string, type)
-    if type(a:string) == v:t_list
-        let result = []
-        for line in a:string
-            call add(result, dawn#InternalSubstitute(line, a:type))
+def InternalSubstitute(str: any, type: number): any
+    if type(str) == v:t_list
+        var result = []
+        for line in str
+            add(result, InternalSubstitute(line, type))
         endfor
         return result
     endif
-    let result = a:string
+    var result = str
 
-    " Type:
-    " 0 = ignore variables
-    " 1 = file content
-    " 2 = file name
-    " 3 = command
-    " 4 = folder name
-    " TODO: use the type to determine whether or not to substitute
-    let cwd = fnamemodify(getcwd(), ':t')
+    # Type:
+    # 0 = ignore variables
+    # 1 = file content
+    # 2 = file name
+    # 3 = command
+    # 4 = folder name
+    # TODO: use the type to determine whether or not to substitute
+    var cwd = fnamemodify(getcwd(), ':t')
 
-    let result = substitute(result, "%{dn}", cwd, "gi")
-    let result = substitute(result, "%{ldn}", tolower(cwd), "gi")
-    " More substitutions go above this comment
+    result = substitute(result, "%{dn}", cwd, "gi")
+    result = substitute(result, "%{ldn}", tolower(cwd), "gi")
+    # More substitutions go above this comment
 
     return result
-endfun
+enddef
 
-fun! dawn#DeclareTemplates(templates)
-    if type(a:templates) != v:t_dict
-        echoerr "dawn#DeclareTemplates takes a dict"
-        return
-    endif
-
+export def DeclareTemplates(templates: dict<any>)
     for [name, template] in templates
-        let g:DawnProjectTemplates[name] = template
+        g:DawnProjectTemplates[name] = template
     endfor
-endfun
+enddef
 
-fun! dawn#DawnCopy(source, target, abspath)
-    if !a:abspath
+export def DawnCopy(source: string, target: string, isAbsPath: bool)
+    if !isAbsPath
         for directory in g:DawnSearchPaths
-            if filereadable(directory .. "/" .. a:source)
-                echom "Copying " .. a:source .. " to " .. a:target
-                let content = dawn#InternalSubstitute(readfile(directory .. "/" .. a:source), 1)
-                call writefile(content, a:target)
+            if filereadable(directory .. "/" .. source)
+                echom "Copying " .. source .. " to " .. target
+                var content = InternalSubstitute(readfile(directory .. "/" .. source), 1)
+                writefile(content, target)
                 return
             endif
         endfor
-        echoerr "Failed to find " .. a:source .. " in the search path."
+        echoerr "Failed to find " .. source .. " in the search path."
     else
-        echom "Copying " .. a:source .. " to " .. a:target
-        let content = dawn#InternalSubstitute(readfile(a:source), 1)
-        call writefile(content, a:target)
+        echom "Copying " .. source .. " to " .. target
+        var content = InternalSubstitute(readfile(source), 1)
+        writefile(content, target)
     endif
-endfun
+enddef
 
-fun! dawn#GenerateProject(templateName)
-    if !has_key(g:DawnProjectTemplates, a:templateName)
-        echoerr "There's no template by the name of " .. a:templateName
+export def GenerateProject(templateName: string)
+    if !has_key(g:DawnProjectTemplates, templateName)
+        echoerr "There's no template named " .. templateName
         return
     endif
-    let template = g:DawnProjectTemplates[a:templateName]
+    var template = g:DawnProjectTemplates[templateName]
 
-    if !has_key(template, 'folders') && !has_key(template, 'files') && !has_key(template, 'commands') < 0
-        echoerr "The template " .. a:templateName .. " is missing folders, files, and commands; at least one of them have to be present for the object to be valid"
+    if !has_key(template, 'folders') && !has_key(template, 'files') && !has_key(template, 'commands')
+        echoerr "The template " .. templateName .. " is missing folders, files, and commands; at least one of them have to be present for the object to be valid"
         return
     endif
 
-    " Iterate folders
+    # Iterate folders
     if has_key(template, 'folders')
         echom "Generating folders..."
         for folder in template["folders"]
             if g:DawnSkipExisting && isdirectory(folder)
                 continue
             endif
-            silent! call mkdir(dawn#InternalSubstitute(folder, 4), "p")
+            silent! call mkdir(InternalSubstitute(folder, 4), "p")
         endfor
         echom "Done."
     endif
 
-    " After folders, initialize files
+    # After folders, initialize files
     if has_key(template, 'files')
         echom "Generating files..."
         for [file, data] in items(template["files"])
-            let substFile = dawn#InternalSubstitute(file, 2)
+            var substFile = InternalSubstitute(file, 2)
             echom "Generating " .. substFile
             if g:DawnSkipExisting && filereadable(substFile)
                 continue
@@ -116,16 +96,16 @@ fun! dawn#GenerateProject(templateName)
 
             if has_key(data, "content")
                 if type(data["content"]) == v:t_func
-                    call writefile(split(dawn#InternalSubstitute(data["content"](), 1), "\n"), substFile)
+                    writefile(split(InternalSubstitute(data["content"](), 1), "\n"), substFile)
                 else
-                    call writefile(split(dawn#InternalSubstitute(data["content"], 1), "\n"), substFile)
+                    writefile(split(InternalSubstitute(data["content"], 1), "\n"), substFile)
                 endif
             elseif has_key(data, "source")
-                let path = data["source"]
-                " We let DawnCopy handle checks on relative files and shit
-                call dawn#DawnCopy(path, substFile, match(path, "^\v(.:[\\/]|/)") >= 0)
+                var path = data["source"]
+                # We let DawnCopy handle checks on relative files and shit
+                DawnCopy(path, substFile, match(path, "^\v(.:[\\/]|/)") >= 0)
             else
-                call writefile([], substFile)
+                writefile([], substFile)
             endif
         endfor
         echom "File generation done."
@@ -133,21 +113,18 @@ fun! dawn#GenerateProject(templateName)
 
     if has_key(template, 'commands')
         for command in template["commands"]
-            exec dawn#InternalSubstitute(command, 3)
+            exec InternalSubstitute(command, 3)
         endfor
     endif
-endfun
+enddef
 
-fun! dawn#ListTemplates()
+export def ListTemplates()
     echom "Valid template names: "
-    for template in dawn#ListTemplatesAsList()
+    for template in ListTemplatesAsList()
         echom '* ' .. template
     endfor
-endfun
+enddef
 
-fun! dawn#ListTemplatesAsList()
+export def ListTemplatesAsList(): list<string>
     return keys(g:DawnProjectTemplates)
-endfun
-
-let &cpoptions = s:save_cpo
-unlet s:save_cpo
+enddef
