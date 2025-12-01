@@ -1,0 +1,16 @@
+{
+    "create.files": [
+        "LICENSE"
+    ],
+    "create.folders": [
+        "build",
+        "docs"
+    ],
+    "link": {
+        "src/template": "src/%{name.lower}"
+    },
+    "after": [
+        "!cd build && cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON && make -j $(nproc) && make run",
+        "edit src/**/Main.cpp"
+    ]
+}

@@ -10,41 +10,20 @@ URL: https://github.com/LunarWatcher/Dawn
 ================================================================================
 Table of contents~
 
-    1. Introduction ............................. |dawn-introduction|
-    2. Usage .................................... |dawn-usage|
-    3. Options .................................. |dawn-options|
-    4. Functions ................................ |dawn-functions|
-    5. The template object ...................... |dawn-template-object|
+    1. Introduction .......................................... |dawn-introduction|
+    2. Usage ................................................. |dawn-usage|
+    3. Options ............................................... |dawn-options|
+    4. Functions ............................................. |dawn-functions|
+    5. Template structure .................................... |dawn-template-structure|
+        5.1. The template folder ............................. |dawn-template-folder|
+        5.2. The template manifest ........................... |dawn-template-manifest|
+        5.3. Template arguments .............................. |dawn-template-arguments|
+        5.4. Supplying template arguments manually ........... |dawn-manual-args|
 
 ================================================================================
 1. Introduction                                                *dawn-introduction*
 
-Dawn is a flexible project generator.
-
-What?~
-
-What this means is, you plug in a few options and preferences, invoke a command
-in a directory, and Dawn generates the files and folders you requested.
-
-You know how IDEs have project setup? Dawn is that, but flexible, customizable,
-and can by extension handle any type of project in any style you prefer, or that
-your organization/group/whatever requires/prefer. To be completely clear though,
-Dawn is _only_ a generator - not a project manager, IDE-emulator, session
-manager, or a plugin that stores the location of your projects.
-
-But why?~
-
-Why not?
-
-How?~
-
-Hop on down to |dawn-usage|.
-
-Doesn't this already exist?~
-
-Not as far as I know. There's project management plugins of varying quality and
-documentation levels, but none for generating. But hey, maybe it's just me who
-keeps jumping on new projects constantly :p
+Dawn is a project structure generator.
 
 ================================================================================
 2. Usage                                                              *dawn-usage*
@@ -61,39 +40,8 @@ What's a customizable plugin without options? This section lists the options
 that exist. Note that a few have 
 
 Table of Contents:~
-    * |g:DawnDefaultTemplates|
-    * |g:DawnProjectTemplates|
     * |g:DawnSearchPaths|
     * |g:DawnSkipExisting|
-
---------------------------------------------------------------------------------
-                                                          *g:DawnDefaultTemplates*
-
-Default: ['vim', 'cpp']
-
-Dawn does ship with a couple pre-defined templates for projects; this is the
-variable you use if you want to disable these completely.
-
-Essentially, you remove names from the array, and they won't load.
-
-Also, note that the defaults respect your choices. If you name a template `vim`
-(case-sensitive, however), the standard `vim` template won't load.
-
---------------------------------------------------------------------------------
-                                                          *g:DawnProjectTemplates*
-
-Default: depends on |g:DawnDefaultTemplates|
-Refer to the source code for the template implementations. Note that certain
-default templates depend on template files present in the /templates directory
-of the plugin, by default.
-
-By overriding |g:DawnSearchPaths|, you can override files without overriding
-templates. By adding a custom path to the variable before the default path, any
-custom files you add in your directory will override the plugin files.
-
-To add additional templates, you add a |dawn-template-object|. Names may be
-equivalent to built-in templates without removing the default templates - Dawn
-will not override already-present templates when initialization takes place.
 
 --------------------------------------------------------------------------------
                                                                *g:DawnSearchPaths*
@@ -130,68 +78,113 @@ Table of Contents:
 
     TODO at a later time~
 
+    TODO: Determine if this section makes sense to keep
 
 ================================================================================
-5. The template object                                      *dawn-template-object*
+5. Template structure                                    *dawn-template-structure*
 
-Note that this is heavily connected to |g:DawnProjectTemplates|. To be specific
-(and as mentioned in that bit of the documentation), the variable contains
-several template objects. To keep the help document structured, this is the bit
-of the document that covers what these are, and their syntax.
+As of v1.0.0, the templates are entirely defined in the filesystem, and not in
+vimscript code.
+
+* `templates/<foldername = template name>` defines a template. 
+* `templates/<foldername>/dawn-manifest.json` defines metadata for things not
+  stored in the filesystem, like postexec commands, and empty folders.
+
+Dawn is intentionally set up to primarily deal with project setup that doesn't
+involve external tools. If you have an external tool already, for example like
+certain npm packages do, you can just |:!cmd| to invoke it without ever leaving
+vim, with the exact same result.
 
 --------------------------------------------------------------------------------
-5.1.                                                 *dawn-template-object-syntax*
+5.1. The template folder                                    *dawn-template-folder*
 
-Well, it's an object. (or |dict| as Vim likes to call it). I won't be covering
-the syntax of an object here, but you're probably familiar with it already.
+Everything within a folder, except |dawn-manifest.json|, is considered a part of
+the template, and will be copied to the destination folder after being processed
+through the template parser. 
 
-The structure of Dawn's template objects, excluding the outer list, is: >
+To avoid running into problems, a few filenames have been changed:
+
+* `.gitignore` is stored as `template.gitignore` in the template. Since the dawn
+  templates are in a single repo, it's possible that the templates interfere
+  with each other, and exclude files from other templates. 
+
+--------------------------------------------------------------------------------
+5.2. The template manifest                                *dawn-template-manifest*
+                                                              *dawn-manifest.json*
+
+The manifest is a json file that contains metadata. Everything within a folder
+is considered in-scope for the template, but the manifest enables things not
+explicitly stated within the folder to still be part of the template, such as
+empty files, empty folders, and commands.
+
+Example (and documentation): >
     {
-        "folders": ["a", "b", "b/c", "you get the idea"],
-        "files": {"a/example.txt": {'content': 'File content, or', 'source':
-            'absolute path or a relative one (Dawn will search through
-                                              |g:DawnSearchPaths|)'}},
-        "commands": ["Optional, but commands to run after initializing the basic
-            folder and file structure. Can also be used without folders or files
-            if you just wanna interact with something like Hugo"]
+        // WARNING: DO NOT copy this directly. The real config file is not
+        // jsonc, so these comments are not valid in the real file. They're
+        // included exclusively for doc purposes
+
+        // "create.files" is used for creating empty files. Use this if you want
+        // to add files, but don't want to include content in them.
+        "create.files": [
+            "LICENSE"
+        ],
+        // "create.folders" is used for creating empty directories. Use this if
+        // you want to add directories, but don't want to include content in
+        // them.
+        "create.folders": [
+            "build",
+        ],
+        "arguments": {
+            // Defines non-standard template arguments used by this template.
+            // This cannot conflict with builtin arguments. The value represents
+            // a default. The value is a literal, and cannot be computationally
+            // derived.
+            "custom": {
+                "key": "default_value_or_null"
+            }
+        },
+        // Used to rename folders. These values support templates.
+        // Note: this variable does not need to include built-in renames (like
+        // template.gitignore -> .gitignore)
+        "link": {
+            // src/template is just the temporary name the C++ template used for
+            // its folder. 
+            // There's no restrictions requiring the folder or file to be named
+            // template to be used here.
+            "src/template": "src/%{name.lower}"
+        }
+        // "after" is used to define a set of commands to run after the template
+        // is created.
+        // This typically includes build steps, venv setup, etc.
+        // Each command is executed as vim commands, so if you want to execute
+        // system commands, the command needs to be prefixed with ! (to evaluate
+        // to :!cmd)
+        "after": [
+            "!cd build && cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=1",
+        ]
     }
 <
 
-Keys:~
-    * folders:  as you might expect, it contains  folders to generate. You don't
-                explicitly have to declare the roots here (Dawn is smart enough
-                to figure out the maths and mkdir everything) - depends purely on
-                what you prefer.
+--------------------------------------------------------------------------------
+5.3. Template arguments                                  *dawn-template-arguments*
 
-    * files:    A set of files to  generate. Note that this is a map, unlike
-                folders, which is a list. The map accepts one of two keys:
-                content or source. Content is self-explanatory: you declare, in
-                vim, what you want in the file. content can also be a function
-                Source is different, and defines a file to copy over to the
-                project. If the path isn't absolute, Dawn will search relative to
-                |g:DawnSearchPaths|
+Template arguments are in the form `%{key_name}`. Additionally, the form
+`%{key_name.operator}` is supported. 
 
-    * commands: A vim function, or a list of vim commands to execute after
-                folders and files are generated. Note that the commands are
-                handled through |exec| - if you want to use system commands, the
-                command has to be in the format `!yoursystemcommand` (i.e.
-                `!ls`).
+The following keys are built-in:
+* `name` (default: current folder name). Only [a-zA-Z._-] is allowed in this
+  variable, as this is often used in template structures.
 
-                                            *dawn-template-object-substitutions*
+The following operators are supported:
+* `lower`: calls |tolower()| on the value before insertion.
 
-Additionally, certain bits supports substitutions. This is largely because it's
-not always possible to generate a static, final project structure with clear
-file names that have no reason to change. Vim projects is one example of this;
-doc/help.txt is way to generic. Dawn therefore offers a set of substitutions.
-These are run on file names, commands (|g:DawnSubstituteCommands|), folder
-names, and file content (|g:DawnSubstituteFileContent|).
+If a template uses a key that doesn't exist, the template is left as-is. This is
+largely to minimise impact on the off chance there's a language or whatever
+where `%{}` is a reasonable expansion to have.
 
-The currently supported substitutions are:
-    - %{dn}                 The name of the current directory. If the generate
-                            command is invoked in
-                            /home/you/projects/SuperSecret, %dn is substituted
-                            with SuperSecret.
+--------------------------------------------------------------------------------
+5.4. Supplying template arguments manually                    *dawn-manual-args*
 
-    - %{ldn}                %dn but forced lower-case
+All template arguments have defaults
 
 vim:ft=help:tw=80

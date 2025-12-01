@@ -1,0 +1,17 @@
+Describe Argument evaluation
+    Before each
+        call dawn#Variables#Load()
+    End
+    It should properly handle basic expansion
+        let result = dawn#InternalSubstitute("%{name}", 0)
+        Assert Equals(result, "Dawn")
+    End
+    It should handle the .lower operator
+        let result = dawn#InternalSubstitute("%{name.lower}", 0)
+        Assert Equals(result, "dawn")
+    End
+    It should not process unknown template names
+        let result = dawn#InternalSubstitute("%{trans_rights_are_human_rights.lower}", 0)
+        Assert Equals(result, "%{trans_rights_are_human_rights.lower}")
+    End
+End

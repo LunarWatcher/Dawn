@@ -1,16 +1,39 @@
 vim9script
 
+import autoload "dawn/ParseContext.vim" as ctx
 import autoload "dawn/Variables.vim"
+import autoload "dawn/Utils.vim" as utils
 Variables.Load()
 
-import autoload "dawn/Templates.vim" as m_templates
-m_templates.InitTemplates()
+add(g:DawnSearchPaths, expand("<sfile>:p:h:h") .. "/templates")
 
-if len(g:DawnDefaultTemplates) != 0 && index(g:DawnSearchPaths, expand('<sfile>:p:h') .. '/templates') < 0
-    add(g:DawnSearchPaths, expand("<sfile>:p:h:h") .. "/templates")
-endif
+export def DoSubstitute(
+    context: ctx.ParseContext,
+    full: string,
+    name: string,
+    operator: string
+): string
+    var repl = context.GetTemplateArg(name)
+    if (repl == null)
+        return full
+    endif
 
-def InternalSubstitute(str: any, type: number): any
+    if (operator == ".lower")
+        repl = repl->tolower()
+    elseif (len(operator) > 0)
+        echoerr "Dawn arg evaluation error: Unknown operator" operator
+    endif
+
+    return repl
+enddef
+
+# Note: even though this is an export, this is purely for use in tests. This
+# is an internal API that can break at any time. Do not use externally
+export def InternalSubstitute(
+    str: any,
+    type: number,
+    context: ctx.ParseContext = ctx.ParseContext.new({}),
+): any
     if type(str) == v:t_list
         var result = []
         for line in str
@@ -20,18 +43,12 @@ def InternalSubstitute(str: any, type: number): any
     endif
     var result = str
 
-    # Type:
-    # 0 = ignore variables
-    # 1 = file content
-    # 2 = file name
-    # 3 = command
-    # 4 = folder name
-    # TODO: use the type to determine whether or not to substitute
-    var cwd = fnamemodify(getcwd(), ':t')
-
-    result = substitute(result, "%{dn}", cwd, "gi")
-    result = substitute(result, "%{ldn}", tolower(cwd), "gi")
-    # More substitutions go above this comment
+    result = substitute(
+        result,
+        '\v\%\{(\w+)(\.\w+)?\}',
+        '\=dawn#DoSubstitute(context, submatch(0), submatch(1), submatch(2))',
+        'g'
+    )
 
     return result
 enddef
@@ -60,62 +77,119 @@ export def DawnCopy(source: string, target: string, isAbsPath: bool)
     endif
 enddef
 
-export def GenerateProject(templateName: string)
-    if !has_key(g:DawnProjectTemplates, templateName)
-        echoerr "There's no template named " .. templateName
-        return
+export def CheckLink(
+    context: ctx.ParseContext,
+    config: dict<any>,
+    relpath: string
+): string
+    var links = config->get("link", {})
+    if links->has_key(relpath)
+        return InternalSubstitute(
+            links->get(relpath, relpath),
+            0, # TODO: Remove type arg
+            context
+        )
     endif
-    var template = g:DawnProjectTemplates[templateName]
+    for [key, target] in links->items()
+        if relpath->stridx(key) == 0
+            var substr = relpath[len(key) : ]
+            var dest = target .. "/" .. substr
+            return InternalSubstitute(
+                dest,
+                0, # TODO: Remove type arg
+                context
+            )
+        endif
+    endfor
 
-    if !has_key(template, 'folders') && !has_key(template, 'files') && !has_key(template, 'commands')
-        echoerr "The template " .. templateName .. " is missing folders, files, and commands; at least one of them have to be present for the object to be valid"
-        return
+    return relpath
+enddef
+
+export def RunCreate(conf: dict<any>)
+    var files = conf->get("create.files", [])
+    for file in files
+        writefile([], file)
+        echo "Create empty file:" file
+    endfor
+
+    var folders = conf->get("create.folders", [])
+    for folder in folders
+        mkdir(folder, "p")
+        echo "Create empty folder:" folder
+    endfor
+enddef
+
+export def GenerateProject(templateName: string, skipAfter: bool = false)
+    # Locate the template
+    # TODO: this does not respect g:DawnSearchPaths->len() > 0
+    var templateSearchPath = g:DawnSearchPaths[0]
+    var templatePath = templateSearchPath .. "/" .. templateName
+    if !templatePath->isdirectory()
+        echoerr "Failed to find template directory for " templatePath
     endif
 
-    # Iterate folders
-    if has_key(template, 'folders')
-        echom "Generating folders..."
-        for folder in template["folders"]
-            if g:DawnSkipExisting && isdirectory(folder)
-                continue
-            endif
-            silent! call mkdir(InternalSubstitute(folder, 4), "p")
+    # Locate the manifest. If no manifest, treat it as being equal to an empty
+    # manifest. Not all templates need a manifest
+    var conf: dict<any> = {}
+    var confPath = templatePath .. "/dawn-manifest.json"
+    if filereadable(confPath)
+        conf = json_decode(readfile(confPath)->join("\n"))
+    endif
+
+    var context = ctx.ParseContext.new(
+        conf->get("arguments", {})->get("custom", {})
+    )
+
+    RunCreate(conf)
+
+    var paths = globpath(templatePath, "**/*", 0, 1)
+    for path in paths
+        var rel = utils.ToRelative(path, templatePath)
+        var fn = fnamemodify(path, ":t")
+        # Where the file gets copied to
+        var dest = CheckLink(
+            context,
+            conf,
+            rel
+        )
+        if isdirectory(path)
+            mkdir(dest, "p")
+            continue
+        endif
+        if fn == "dawn-manifest.json"
+            # dawn-manifest.json should not be copied
+            continue
+        elseif fn == "template.gitignore"
+            dest = dest->substitute("template.gitignore", ".gitignore", "")
+        endif
+
+        var contents = readfile(path)
+        var parsedContents = []
+        for line in contents
+            parsedContents->add(
+                InternalSubstitute(
+                    line,
+                    0,
+                    context
+                )
+            )
         endfor
-        echom "Done."
-    endif
+        writefile(
+            parsedContents,
+            dest
+        )
+        echo "Create from template:" dest 
+    endfor
 
-    # After folders, initialize files
-    if has_key(template, 'files')
-        echom "Generating files..."
-        for [file, data] in items(template["files"])
-            var substFile = InternalSubstitute(file, 2)
-            echom "Generating " .. substFile
-            if g:DawnSkipExisting && filereadable(substFile)
-                continue
-            endif
-
-            if has_key(data, "content")
-                if type(data["content"]) == v:t_func
-                    writefile(split(InternalSubstitute(data["content"](), 1), "\n"), substFile)
-                else
-                    writefile(split(InternalSubstitute(data["content"], 1), "\n"), substFile)
-                endif
-            elseif has_key(data, "source")
-                var path = data["source"]
-                # We let DawnCopy handle checks on relative files and shit
-                DawnCopy(path, substFile, match(path, "^\v(.:[\\/]|/)") >= 0)
-            else
-                writefile([], substFile)
+    if !skipAfter
+        var after: list<string> = conf->get("after", [])
+        for command in after
+            if command->trim()->len() > 0
+                exec command
             endif
         endfor
-        echom "File generation done."
     endif
 
-    if has_key(template, 'commands')
-        for command in template["commands"]
-            exec InternalSubstitute(command, 3)
-        endfor
-    endif
 enddef
 
 export def ListTemplates()
@@ -126,5 +200,12 @@ export def ListTemplates()
 enddef
 
 export def ListTemplatesAsList(): list<string>
-    return keys(g:DawnProjectTemplates)
+    var templateDir = g:DawnSearchPaths[0]
+    var out: list<string> = []
+    for path in glob(templateDir .. "/*", 0, 1)
+        out->add(
+            fnamemodify(path, ":t")
+        )
+    endfor
+    return out
 enddef

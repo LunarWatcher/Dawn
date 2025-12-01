@@ -1,0 +1,8 @@
+{
+    "create.files": [
+        "LICENSE"
+    ],
+    "link": {
+        "doc/template.txt": "doc/%{name.lower}.txt"
+    }
+}

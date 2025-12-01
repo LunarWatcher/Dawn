@@ -1,0 +1,6 @@
+{
+    "create.folders": [
+        "cmd",
+        "pkg"
+    ]
+}

@@ -20,7 +20,7 @@ def SortByStridx(a: string, b: string, search: string)
 
 enddef
 
-def CompleteTemplates(ArgLead: any, CmdLine: any, _CursorPos: any)
+def CompleteTemplates(ArgLead: any, CmdLine: any, _CursorPos: any): list<string>
     if CmdLine->trim()->stridx(" ") == -1
         # Option 1: no space means first argument
         var templates = dawn.ListTemplatesAsList()

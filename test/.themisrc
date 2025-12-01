@@ -1,0 +1,5 @@
+syntax on
+filetype plugin indent on
+set noswapfile
+
+call themis#helper('command').with(themis#helper('assert'))

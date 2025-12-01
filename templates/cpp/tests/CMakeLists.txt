@@ -1,5 +1,5 @@
 add_executable(tests 
-    src/ABCDTests.cpp
+    src/DeleteMe.cpp
 )
 
 Include(FetchContent)
@@ -16,6 +16,6 @@ FetchContent_MakeAvailable(Catch2)
 
 target_link_libraries(tests Catch2::Catch2WithMain)
 
-target_link_libraries(tests %{ldn}src)
+target_link_libraries(tests %{name.lower}src)
 
 # vim:ft=cmake

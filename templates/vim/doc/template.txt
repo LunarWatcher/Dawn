@@ -1,0 +1,16 @@
+%{name.lower} Short description for |local-additions|
+%{name.lower}.vim %{name.lower}.txt
+
+License: Your license here
+URL: Your URL here
+Changelog: Your URL here
+
+================================================================================
+Table of Contents~
+
+    1. Entry ................... |link|
+
+================================================================================
+
+
+vim:ft=help:tw=80

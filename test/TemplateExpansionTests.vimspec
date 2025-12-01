@@ -1,0 +1,23 @@
+Describe Template expansion
+    Before each
+        call dawn#Variables#Load()
+
+        let g:OldDir = getcwd()
+        let dir = tempname()
+        call mkdir(dir, "p")
+        exec 'cd ' escape(dir, ' ')
+    End
+    After each
+        exec 'cd ' escape(g:OldDir, ' ')
+    End
+    It should generate a C++ structure
+        call dawn#GenerateProject("cpp", v:true)
+        Assert True(isdirectory("./build"))
+        Assert True(filereadable("LICENSE"))
+        let cmakelists = readfile("./src/CMakeLists.txt")
+        Assert True(len(cmakelists) > 0)
+        for line in cmakelists
+            Assert True(line->stridx("%{") < 0)
+        endfor
+    End
+End
