@@ -1,4 +1,5 @@
 vim9script
+
 export class ParseContext
     var builtinArgs: dict<string>
     var templateArgs: dict<string>
