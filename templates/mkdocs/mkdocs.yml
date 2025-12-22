@@ -1,0 +1,25 @@
+site_name: %{name} documentation
+nav:
+  - Home: index.md
+
+theme:
+  name: material
+  icon:
+    logo: material/heart
+  plugins:
+    - privacy:
+        enabled: true
+  palette:
+    primary: purple
+  highlightjs: true
+  hljs_languages:
+    - bash
+
+plugins:
+  - search
+
+copyright: FIXME
+repo_url: FIXME
+
+markdown_extensions:
+  - pymdownx.magiclink

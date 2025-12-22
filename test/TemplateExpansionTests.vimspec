@@ -14,10 +14,18 @@ Describe Template expansion
         call dawn#GenerateProject("cpp", v:true)
         Assert True(isdirectory("./build"))
         Assert True(filereadable("LICENSE"))
+        Assert False(filereadable("dawn-manifest.json"))
         let cmakelists = readfile("./src/CMakeLists.txt")
         Assert True(len(cmakelists) > 0)
         for line in cmakelists
             Assert True(line->stridx("%{") < 0)
         endfor
+    End
+    It should handle dotfolder links
+        call dawn#GenerateProject("mkdocs", v:true)
+        Assert True(isdirectory("./.github"))
+        Assert True(isdirectory("./.github/workflows"))
+        Assert False(isdirectory("github"))
+        Assert False(filereadable("dawn-manifest.json"))
     End
 End

@@ -13,12 +13,15 @@ Table of contents~
     1. Introduction .......................................... |dawn-introduction|
     2. Usage ................................................. |dawn-usage|
     3. Options ............................................... |dawn-options|
+         ..................................................... |g:DawnSearchPaths|
+         ..................................................... |g:DawnSkipExisting|
     4. Functions ............................................. |dawn-functions|
     5. Template structure .................................... |dawn-template-structure|
         5.1. The template folder ............................. |dawn-template-folder|
         5.2. The template manifest ........................... |dawn-template-manifest|
         5.3. Template arguments .............................. |dawn-template-arguments|
         5.4. Supplying template arguments manually ........... |dawn-manual-args|
+        5.5. Limitations ..................................... |dawn-template-limitations|
 
 ================================================================================
 1. Introduction                                                *dawn-introduction*
@@ -186,5 +189,25 @@ where `%{}` is a reasonable expansion to have.
 5.4. Supplying template arguments manually                    *dawn-manual-args*
 
 All template arguments have defaults
+
+--------------------------------------------------------------------------------
+5.5. Limitations                                       *dawn-template-limitations*
+
+One limitation with the templates as they're set up today is that they do not
+handle dotfiles. `glob` has no easy option to override it either. Instead, the
+give the dotfiles a non-dot name, then link it in |dawn-manifest.json|: >
+    {
+        "link": {
+            "github": ".github",
+            "path/vimrc": "path/.vimrc"
+        }
+    }
+<
+
+This works with both dotfolders and dotfiles. Note that the folder relink cannot
+end with a `/`, or it'll still create a stub directory.
+
+If you know of a trivial-ish way to get around this glob() limitation, please
+consider opening a PR.
 
 vim:ft=help:tw=80
